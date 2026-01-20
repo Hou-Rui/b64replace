@@ -1,0 +1,16 @@
+[package]
+name = "b64replace-gui"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+b64replace-core = { path = "../core" }
+anyhow = "1"
+cxx = "1.0.95"
+cxx-qt = "0.8"
+cxx-qt-lib = { version = "0.8", features = ["qt_full"] }
+cxx-qt-lib-extras = "0.8"
+
+[build-dependencies]
+cxx-qt-build = { version = "0.8", features = [ "link_qt_object_files" ] }
