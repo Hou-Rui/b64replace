@@ -44,7 +44,7 @@ impl Base64Replacer {
     fn build_regex(&self) -> Result<Regex> {
         let parts: Vec<&str> = self.template.split("{}").collect();
         if parts.len() != 2 {
-            anyhow::bail!("template must contain exactly one {{}} placeholder");
+            anyhow::bail!("Template must contain exactly one {{}} placeholder!");
         }
         let pattern = format!("{}(?P<data>{}){}", parts[0], BASE64_REGEX, parts[1]);
         Ok(Regex::new(&pattern)?)
