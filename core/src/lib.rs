@@ -1,7 +1,7 @@
 use anyhow::Result;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use regex::{Captures, Regex};
+use regex::bytes::{Captures, Regex};
 use std::io::{BufRead, Write};
 
 const BASE64_REGEX: &str = r"(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?";
@@ -10,7 +10,7 @@ pub struct Base64Replacer {
     template: String,
 }
 
-fn decode_base64_utf8(s: &str) -> Result<String> {
+fn decode_base64_utf8(s: &String) -> Result<String> {
     let bytes = STANDARD.decode(s)?;
     Ok(String::from_utf8(bytes)?)
 }
@@ -37,16 +37,15 @@ impl Base64Replacer {
             if bytes == 0 {
                 break;
             }
-            let line = String::from_utf8_lossy(&buffer);
-            let out = re.replace_all(&line, |caps: &Captures| {
-                let full = caps.get(0).unwrap().as_str();
-                let encoded = &caps["data"];
-                match decode_base64_utf8(encoded) {
-                    Ok(decoded) => full.replace(encoded, &decoded),
-                    Err(_) => full.to_string(), // leave unchanged on failure
+            let out = re.replace_all(&buffer, |caps: &Captures| {
+                let full = String::from_utf8_lossy(&caps[0]).to_string();
+                let encoded = String::from_utf8_lossy(&caps["data"]).to_string();
+                match decode_base64_utf8(&encoded) {
+                    Ok(decoded) => full.replace(&encoded, &decoded),
+                    Err(_) => full, // leave unchanged on failure
                 }
             });
-            write!(writer, "{}", out.to_string())?;
+            writer.write(&out)?;
             buffer.clear();
         }
         Ok(())
