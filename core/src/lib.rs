@@ -17,17 +17,27 @@ fn decode_base64_utf8(s: &str) -> Result<String> {
 
 impl Base64Replacer {
     pub fn new(template: String) -> Self {
-        Self { template }
+        Self {
+            template: if template.is_empty() {
+                String::from("^{}$")
+            } else {
+                template
+            },
+        }
     }
 
-    pub fn replace_all<R, W>(&mut self, reader: R, writer: &mut W) -> Result<()>
+    pub fn replace_all<R, W>(&mut self, reader: &mut R, writer: &mut W) -> Result<()>
     where
         R: BufRead,
         W: Write,
     {
         let re = self.build_regex()?;
-        for line in reader.lines() {
-            let line = line?;
+        let mut buffer = Vec::new();
+        while let Ok(bytes) = reader.read_until(b'\n', &mut buffer) {
+            if bytes == 0 {
+                break;
+            }
+            let line = String::from_utf8_lossy(&buffer);
             let out = re.replace_all(&line, |caps: &Captures| {
                 let full = caps.get(0).unwrap().as_str();
                 let encoded = &caps["data"];
@@ -36,7 +46,8 @@ impl Base64Replacer {
                     Err(_) => full.to_string(), // leave unchanged on failure
                 }
             });
-            writeln!(writer, "{}", out.to_string())?;
+            write!(writer, "{}", out.to_string())?;
+            buffer.clear();
         }
         Ok(())
     }

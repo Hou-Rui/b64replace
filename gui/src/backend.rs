@@ -38,14 +38,11 @@ pub struct BackendRust {
 impl ffi::Backend {
     pub fn get_output(self: Pin<&mut Self>) -> QString {
         let run = || -> Result<String> {
-            let input = BufReader::new(Cursor::new(self.input.to_string()));
+            let mut input = BufReader::new(Cursor::new(self.input.to_string()));
             let mut output = BufWriter::new(Vec::new());
-            let mut template = String::from(self.template.clone());
-            if template.is_empty() {
-                template = String::from("^{}$");
-            }
+            let template = self.template.to_string();
             let mut replacer = Base64Replacer::new(template);
-            replacer.replace_all(input, &mut output)?;
+            replacer.replace_all(&mut input, &mut output)?;
             let decoded = output.into_inner()?;
             Ok(String::from_utf8(decoded)?)
         };

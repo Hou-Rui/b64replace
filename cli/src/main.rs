@@ -13,7 +13,7 @@ struct Args {
     input: Option<String>, // input file (default: stdin)
     #[arg(short, long)]
     output: Option<String>, // output file (default: stdout)
-    #[arg(short, long, default_value = "^{}$")]
+    #[arg(short, long, default_value = "")]
     template: String, // regex capture template (must contain `{}`)
 }
 
@@ -39,8 +39,8 @@ fn open_output_file(output: &Option<String>) -> Result<Box<dyn Write>> {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let input = open_input_file(&args.input)?;
+    let mut input = open_input_file(&args.input)?;
     let mut output = open_output_file(&args.output)?;
     let mut replacer = Base64Replacer::new(args.template);
-    replacer.replace_all(input, &mut output)
+    replacer.replace_all(&mut input, &mut output)
 }
