@@ -41,8 +41,8 @@ impl ffi::Backend {
             let mut input = BufReader::new(Cursor::new(self.input.to_string()));
             let mut output = BufWriter::new(Vec::new());
             let template = self.template.to_string();
-            let mut replacer = Base64Replacer::new(template);
-            replacer.replace_all(&mut input, &mut output)?;
+            let replacer = Base64Replacer::new(template);
+            replacer.replace(&mut input, &mut output, &mut |_| {})?;
             let decoded = output.into_inner()?;
             Ok(String::from_utf8(decoded)?)
         };

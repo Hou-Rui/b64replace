@@ -41,6 +41,6 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let mut input = open_input_file(&args.input)?;
     let mut output = open_output_file(&args.output)?;
-    let mut replacer = Base64Replacer::new(args.template);
-    replacer.replace_all(&mut input, &mut output)
+    let replacer = Base64Replacer::new(args.template);
+    replacer.replace(&mut input, &mut output, &mut |_| {})
 }
